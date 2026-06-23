@@ -20,7 +20,6 @@ const disabledItems = [
   { label: 'Invoices', icon: FileText },
   { label: 'Payments', icon: CreditCard },
   { label: 'Reports', icon: BarChart2 },
-  { label: 'Scholarship', icon: Award },
   { label: 'Settings', icon: Settings },
 ]
 
@@ -57,6 +56,15 @@ export default function Sidebar() {
           <BookOpen size={18} />
           Courses
         </NavLink>
+        <NavLink
+  to="/scholarship"
+  className={({ isActive }) =>
+    'sidebar-item' + (isActive ? ' active' : '')
+  }
+>
+  <Award size={18} />
+  Scholarship
+</NavLink>
 
         {disabledItems.map(({ label, icon: Icon }) => (
           <button
