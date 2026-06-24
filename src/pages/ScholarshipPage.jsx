@@ -159,17 +159,7 @@ export default function ScholarshipPage() {
           Manage scholarship categories and discount percentages.
         </p>
 
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            marginBottom: 16,
-          }}
-        >
-          <button type="button" className="btn btn-primary" onClick={openAddForm}>
-            <Plus size={16} /> Add Category
-          </button>
-        </div>
+        
 
         {error && <div className="banner-error">{error}</div>}
 

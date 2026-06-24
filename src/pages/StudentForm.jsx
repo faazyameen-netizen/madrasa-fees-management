@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabaseClient.js'
 import Topbar from '../components/Topbar.jsx'
-import { COURSE_OPTIONS, CATEGORY_OPTIONS, STATUS_OPTIONS } from '../constants.js'
+import { CATEGORY_OPTIONS, STATUS_OPTIONS } from '../constants.js'
 
 const emptyForm = {
   full_name: '',
@@ -26,6 +26,21 @@ export default function StudentForm({ mode }) {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [courseOptions, setCourseOptions] = useState([])
+
+  useEffect(() => {
+    async function loadCourses() {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('course_name')
+        .order('course_name', { ascending: true })
+
+      if (!error && data) {
+        setCourseOptions(data.map((c) => c.course_name))
+      }
+    }
+    loadCourses()
+  }, [])
 
   useEffect(() => {
     if (!isEdit) return
@@ -160,11 +175,17 @@ export default function StudentForm({ mode }) {
                 onChange={(e) => update('course', e.target.value)}
               >
                 <option value="">Select Course</option>
-                {COURSE_OPTIONS.map((c) => (
+                {courseOptions.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
+                {/* Keeps an already-saved course visible even if it was later
+                    deleted from the Courses page, so editing doesn't silently
+                    blank out an existing student's course. */}
+                {form.course && !courseOptions.includes(form.course) && (
+                  <option value={form.course}>{form.course} (no longer listed)</option>
+                )}
               </select>
             </div>
 

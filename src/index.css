@@ -210,6 +210,40 @@ body {
   margin-bottom: 18px;
   align-items: center;
 }
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: #f7f8fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #6b7184;
+}
+
+.summary-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1d29;
+}
+
+.summary-success {
+  color: #1a9d50;
+}
+
+.summary-danger {
+  color: #d4373e;
+}
 
 .search-box {
   position: relative;
@@ -300,10 +334,11 @@ tbody tr:hover {
   color: #1a9d50;
 }
 
-.badge-inactive {
-  background: #fdecec;
-  color: #d4373e;
+.badge-partial {
+  background: #fef3e2;
+  color: #b86e00;
 }
+
 
 .action-icons {
   display: flex;
@@ -468,9 +503,9 @@ tbody tr:hover {
   font-size: 14px;
 }
 
-.banner-error {
-  background: #fdecec;
-  color: #b91c1c;
+.banner-success {
+  background: #e6f7ec;
+  color: #1a9d50;
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;

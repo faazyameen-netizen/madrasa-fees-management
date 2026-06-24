@@ -13,12 +13,13 @@ import {
 } from 'lucide-react'
 import { supabase } from '../supabaseClient.js'
 import Topbar from '../components/Topbar.jsx'
-import { COURSE_OPTIONS, CATEGORY_OPTIONS, PAGE_SIZE } from '../constants.js'
+import { CATEGORY_OPTIONS, PAGE_SIZE } from '../constants.js'
 
 export default function StudentsList() {
   const navigate = useNavigate()
 
   const [students, setStudents] = useState([])
+  const [courseOptions, setCourseOptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -51,6 +52,19 @@ export default function StudentsList() {
   useEffect(() => {
     fetchStudents()
   }, [])
+  useEffect(() => {
+  async function loadCourses() {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('course_name')
+      .order('course_name', { ascending: true })
+
+    if (!error && data) {
+      setCourseOptions(data.map((c) => c.course_name))
+    }
+  }
+  loadCourses()
+}, [])
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
@@ -154,7 +168,7 @@ export default function StudentsList() {
             onChange={(e) => resetToFirstPage(setCourseFilter)(e.target.value)}
           >
             <option>All Courses</option>
-            {COURSE_OPTIONS.map((c) => (
+          {courseOptions.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>

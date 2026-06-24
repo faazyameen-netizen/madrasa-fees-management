@@ -12,12 +12,8 @@ import {
   Moon,
 } from 'lucide-react'
 
-// "Students" and "Courses" are real, working routes in this build.
-// The rest are shown for visual context but are inactive placeholders.
 const disabledItems = [
   { label: 'Dashboard', icon: Home },
-  { label: 'Fees Desk', icon: Wallet },
-  { label: 'Invoices', icon: FileText },
   { label: 'Payments', icon: CreditCard },
   { label: 'Reports', icon: BarChart2 },
   { label: 'Settings', icon: Settings },
@@ -56,15 +52,35 @@ export default function Sidebar() {
           <BookOpen size={18} />
           Courses
         </NavLink>
+
         <NavLink
-  to="/scholarship"
-  className={({ isActive }) =>
-    'sidebar-item' + (isActive ? ' active' : '')
-  }
->
-  <Award size={18} />
-  Scholarship
-</NavLink>
+          to="/fees-desk"
+          className={({ isActive }) =>
+            'sidebar-item' + (isActive ? ' active' : '')
+          }
+        >
+          <Wallet size={18} />
+          Fees Desk
+        </NavLink>
+
+        <NavLink
+          to="/scholarship"
+          className={({ isActive }) =>
+            'sidebar-item' + (isActive ? ' active' : '')
+          }
+        >
+          <Award size={18} />
+          Scholarship
+        </NavLink>
+        <NavLink
+          to="/invoices"
+          className={({ isActive }) =>
+            'sidebar-item' + (isActive ? ' active' : '')
+          }
+        >
+          <FileText size={18} />
+          Invoices
+        </NavLink>
 
         {disabledItems.map(({ label, icon: Icon }) => (
           <button
