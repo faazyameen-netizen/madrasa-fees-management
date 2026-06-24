@@ -14,7 +14,6 @@ import {
 
 const disabledItems = [
   { label: 'Dashboard', icon: Home },
-  { label: 'Payments', icon: CreditCard },
   { label: 'Reports', icon: BarChart2 },
   { label: 'Settings', icon: Settings },
 ]
@@ -81,6 +80,15 @@ export default function Sidebar() {
           <FileText size={18} />
           Invoices
         </NavLink>
+        <NavLink
+  to="/payments"
+  className={({ isActive }) =>
+    'sidebar-item' + (isActive ? ' active' : '')
+  }
+>
+  <CreditCard size={18} />
+  Payments
+</NavLink>
 
         {disabledItems.map(({ label, icon: Icon }) => (
           <button

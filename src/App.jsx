@@ -7,6 +7,8 @@ import ScholarshipPage from './pages/ScholarshipPage.jsx'
 import InvoicesList from './pages/InvoicesList.jsx'
 import GenerateInvoices from './pages/GenerateInvoices.jsx'
 import FeesDesk from './pages/FeesDesk.jsx'
+import InvoiceDetails from './pages/InvoiceDetails.jsx'
+import PaymentsHistory from './pages/PaymentsHistory.jsx'
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/invoices" element={<InvoicesList />} />
           <Route path="/invoices/generate" element={<GenerateInvoices />} />
           <Route path="/fees-desk" element={<FeesDesk />} />
+          <Route path="/invoices/:id" element={<InvoiceDetails />} />
+          <Route path="/payments" element={<PaymentsHistory />} />
         </Routes>
       </div>
     </div>
