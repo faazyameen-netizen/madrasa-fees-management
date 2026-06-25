@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from 'lucide-react'
 import { supabase } from '../supabaseClient.js'
 import Topbar from '../components/Topbar.jsx'
+import { PAGE_SIZE } from '../constants.js'
 
 const MODES = ['All Modes', 'Cash', 'UPI', 'Card', 'Bank Transfer', 'Cheque']
 
@@ -23,6 +30,7 @@ export default function PaymentsHistory() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [modeFilter, setModeFilter] = useState('All Modes')
+  const [page, setPage] = useState(1)
 
   async function fetchPayments() {
     setLoading(true)
@@ -31,7 +39,7 @@ export default function PaymentsHistory() {
     const { data, error: fetchError } = await supabase
       .from('payments')
       .select('*, invoices(invoice_no, students(full_name, roll_no))')
-      .order('payment_date', { ascending: false })
+     .order('created_at', { ascending: false })
 
     if (fetchError) {
       setError(fetchError.message)
@@ -59,6 +67,37 @@ export default function PaymentsHistory() {
     return { count: filtered.length, total }
   }, [filtered])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+
+  function resetToFirstPage(setter) {
+    return (value) => {
+      setter(value)
+      setPage(1)
+    }
+  }
+
+  function pageNumbers() {
+    const nums = []
+    const last = totalPages
+    const cur = currentPage
+    const add = (n) => nums.push(n)
+
+    add(1)
+    if (cur > 3) nums.push('...')
+    for (let n = Math.max(2, cur - 1); n <= Math.min(last - 1, cur + 1); n++) {
+      add(n)
+    }
+    if (cur < last - 2) nums.push('...')
+    if (last > 1) add(last)
+
+    return [...new Set(nums)]
+  }
+
   return (
     <>
       <Topbar title="Payments" />
@@ -73,7 +112,7 @@ export default function PaymentsHistory() {
             <input
               type="date"
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              onChange={(e) => resetToFirstPage(setFromDate)(e.target.value)}
             />
           </div>
           <div className="form-field" style={{ minWidth: 160 }}>
@@ -81,13 +120,13 @@ export default function PaymentsHistory() {
             <input
               type="date"
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={(e) => resetToFirstPage(setToDate)(e.target.value)}
             />
           </div>
           <select
             className="filter-select"
             value={modeFilter}
-            onChange={(e) => setModeFilter(e.target.value)}
+            onChange={(e) => resetToFirstPage(setModeFilter)(e.target.value)}
           >
             {MODES.map((m) => (
               <option key={m}>{m}</option>
@@ -113,7 +152,7 @@ export default function PaymentsHistory() {
         <div className="card">
           {loading ? (
             <div className="loading-state">Loading payments...</div>
-          ) : filtered.length === 0 ? (
+          ) : pageItems.length === 0 ? (
             <div className="empty-state">No payments found for this filter.</div>
           ) : (
             <table>
@@ -128,7 +167,7 @@ export default function PaymentsHistory() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
+                {pageItems.map((p) => (
                   <tr key={p.id}>
                     <td>{formatDate(p.payment_date)}</td>
                     <td>
@@ -145,6 +184,54 @@ export default function PaymentsHistory() {
                 ))}
               </tbody>
             </table>
+          )}
+
+          {!loading && filtered.length > 0 && (
+            <div className="table-footer">
+              <span>
+                Showing {(currentPage - 1) * PAGE_SIZE + 1} to{' '}
+                {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{' '}
+                {filtered.length} entries
+              </span>
+              <div className="pagination">
+                <button disabled={currentPage === 1} onClick={() => setPage(1)}>
+                  <ChevronsLeft size={14} />
+                </button>
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                {pageNumbers().map((n, idx) =>
+                  n === '...' ? (
+                    <span key={`dots-${idx}`} style={{ padding: '0 4px' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={n}
+                      className={n === currentPage ? 'active' : ''}
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </button>
+                  )
+                )}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  <ChevronRight size={14} />
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setPage(totalPages)}
+                >
+                  <ChevronsRight size={14} />
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

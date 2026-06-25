@@ -187,7 +187,19 @@ export default function InvoiceDetails() {
               {MONTH_NAMES[invoice.month - 1]} {invoice.year}
             </span>
           </div>
+        <div className="modal-row">
+            <span>Tuition Fee</span>
+            <span>{formatRupees(invoice.tuition_amount)}</span>
+          </div>
           <div className="modal-row">
+            <span>Exam Fee</span>
+            <span>{formatRupees(invoice.exam_amount)}</span>
+          </div>
+          <div className="modal-row">
+            <span>Book Fee</span>
+            <span>{formatRupees(invoice.book_amount)}</span>
+          </div>
+          <div className="modal-row" style={{ fontWeight: 600 }}>
             <span>Total Amount</span>
             <span>{formatRupees(invoice.total_amount)}</span>
           </div>

@@ -10,6 +10,7 @@ import {
   Award,
   Settings,
   Moon,
+  X,
 } from 'lucide-react'
 
 const disabledItems = [
@@ -18,9 +19,9 @@ const disabledItems = [
   { label: 'Settings', icon: Settings },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside className={'sidebar' + (mobileOpen ? ' sidebar-open' : '')}>
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
           <Moon size={18} color="#fff" />
@@ -29,11 +30,20 @@ export default function Sidebar() {
           <strong>MADRASA</strong>
           <span>FEES MANAGEMENT</span>
         </div>
+        <button
+          className="sidebar-close-btn"
+          onClick={onClose}
+          aria-label="Close menu"
+          type="button"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
         <NavLink
           to="/"
+          onClick={onClose}
           className={({ isActive }) =>
             'sidebar-item' + (isActive ? ' active' : '')
           }
@@ -44,6 +54,7 @@ export default function Sidebar() {
 
         <NavLink
           to="/courses"
+          onClick={onClose}
           className={({ isActive }) =>
             'sidebar-item' + (isActive ? ' active' : '')
           }
@@ -54,6 +65,7 @@ export default function Sidebar() {
 
         <NavLink
           to="/fees-desk"
+          onClick={onClose}
           className={({ isActive }) =>
             'sidebar-item' + (isActive ? ' active' : '')
           }
@@ -64,6 +76,7 @@ export default function Sidebar() {
 
         <NavLink
           to="/scholarship"
+          onClick={onClose}
           className={({ isActive }) =>
             'sidebar-item' + (isActive ? ' active' : '')
           }
@@ -71,8 +84,10 @@ export default function Sidebar() {
           <Award size={18} />
           Scholarship
         </NavLink>
+
         <NavLink
           to="/invoices"
+          onClick={onClose}
           className={({ isActive }) =>
             'sidebar-item' + (isActive ? ' active' : '')
           }
@@ -80,15 +95,17 @@ export default function Sidebar() {
           <FileText size={18} />
           Invoices
         </NavLink>
+
         <NavLink
-  to="/payments"
-  className={({ isActive }) =>
-    'sidebar-item' + (isActive ? ' active' : '')
-  }
->
-  <CreditCard size={18} />
-  Payments
-</NavLink>
+          to="/payments"
+          onClick={onClose}
+          className={({ isActive }) =>
+            'sidebar-item' + (isActive ? ' active' : '')
+          }
+        >
+          <CreditCard size={18} />
+          Payments
+        </NavLink>
 
         {disabledItems.map(({ label, icon: Icon }) => (
           <button

@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar.jsx'
+import Topbar from './components/Topbar.jsx'
+import BottomNav from './components/BottomNav.jsx'
+import MobileTopbar from './components/MobileTopbar.jsx'
 import StudentsList from './pages/StudentsList.jsx'
 import StudentForm from './pages/StudentForm.jsx'
 import CoursesList from './pages/CoursesList.jsx'
@@ -10,10 +14,26 @@ import FeesDesk from './pages/FeesDesk.jsx'
 import InvoiceDetails from './pages/InvoiceDetails.jsx'
 import PaymentsHistory from './pages/PaymentsHistory.jsx'
 
+
 export default function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <div className="app-shell">
-      <Sidebar />
+      <MobileTopbar onOpenMenu={() => setMobileMenuOpen(true)} />
+
+      {mobileMenuOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      />
+
       <div className="main-area">
         <Routes>
           <Route path="/" element={<StudentsList />} />
@@ -28,6 +48,8 @@ export default function App() {
           <Route path="/payments" element={<PaymentsHistory />} />
         </Routes>
       </div>
+
+      <BottomNav />
     </div>
   )
 }
