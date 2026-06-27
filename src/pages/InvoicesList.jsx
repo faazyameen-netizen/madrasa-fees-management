@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Eye } from 'lucide-react'
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { supabase } from '../supabaseClient.js'
 import Topbar from '../components/Topbar.jsx'
+import { PAGE_SIZE } from '../constants.js'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -19,10 +24,32 @@ function formatRupees(value) {
   return '₹' + num.toLocaleString('en-IN')
 }
 
-function badgeClass(status) {
-  if (status === 'Paid') return 'badge badge-active'
-  if (status === 'Partial') return 'badge badge-partial'
-  return 'badge badge-inactive'
+function statusCardClass(status) {
+  if (status === 'Paid') return 'data-card status-card-paid'
+  if (status === 'Partial') return 'data-card status-card-partial'
+  return 'data-card status-card-unpaid'
+}
+
+// Inline summary card — guaranteed 2×2 grid regardless of global CSS
+function SummaryCard({ label, value, valueStyle }) {
+  return (
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e8eaf0',
+      borderRadius: 10,
+      padding: '12px 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+    }}>
+      <span style={{ fontSize: 11, color: '#9aa1b5', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {label}
+      </span>
+      <span style={{ fontSize: 20, fontWeight: 700, color: '#1f2330', lineHeight: 1.2, ...valueStyle }}>
+        {value}
+      </span>
+    </div>
+  )
 }
 
 export default function InvoicesList() {
@@ -32,11 +59,10 @@ export default function InvoicesList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Defaults to the current month/year, so landing here mid-month
-  // immediately shows where things stand right now.
   const [monthFilter, setMonthFilter] = useState(currentMonth)
   const [yearFilter, setYearFilter] = useState(currentYear)
   const [statusFilter, setStatusFilter] = useState('All Status')
+  const [page, setPage] = useState(1)
 
   async function fetchInvoices() {
     setLoading(true)
@@ -68,8 +94,6 @@ export default function InvoicesList() {
     })
   }, [invoices, monthFilter, yearFilter, statusFilter])
 
-  // Summary numbers are calculated from the filtered (month+year) set,
-  // not the whole table, so they reflect whichever month you're looking at.
   const summary = useMemo(() => {
     const monthOnly = invoices.filter(
       (inv) => inv.month === monthFilter && inv.year === yearFilter
@@ -84,141 +108,163 @@ export default function InvoicesList() {
     return { totalInvoices, collected, pending, partialCount }
   }, [invoices, monthFilter, yearFilter])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+
+  function resetToFirstPage(setter) {
+    return (value) => {
+      setter(value)
+      setPage(1)
+    }
+  }
+
   return (
     <>
       <Topbar title="Invoices" />
       <div className="page-content">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            marginBottom: 16,
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div className="toolbar" style={{ marginBottom: 0 }}>
-            <select
-              className="filter-select"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(Number(e.target.value))}
-            >
-              {MONTH_NAMES.map((m, idx) => (
-                <option key={m} value={idx + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
 
-            <select
-              className="filter-select"
-              value={yearFilter}
-              onChange={(e) => setYearFilter(Number(e.target.value))}
-            >
-              {YEARS.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+        {/* FILTERS ROW */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+          <select
+            className="filter-select"
+            style={{ flex: 2 }}
+            value={monthFilter}
+            onChange={(e) => resetToFirstPage(setMonthFilter)(Number(e.target.value))}
+          >
+            {MONTH_NAMES.map((m, idx) => (
+              <option key={m} value={idx + 1}>{m}</option>
+            ))}
+          </select>
 
-            <select
-              className="filter-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option>All Status</option>
-              <option>Unpaid</option>
-              <option>Partial</option>
-              <option>Paid</option>
-            </select>
-          </div>
+          <select
+            className="filter-select"
+            style={{ flex: 1 }}
+            value={yearFilter}
+            onChange={(e) => resetToFirstPage(setYearFilter)(Number(e.target.value))}
+          >
+            {YEARS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
 
-          <Link to="/invoices/generate" className="btn btn-primary">
+          <select
+            className="filter-select"
+            style={{ flex: 1.5 }}
+            value={statusFilter}
+            onChange={(e) => resetToFirstPage(setStatusFilter)(e.target.value)}
+          >
+            <option>All Status</option>
+            <option>Unpaid</option>
+            <option>Partial</option>
+            <option>Paid</option>
+          </select>
+        </div>
+
+        {/* GENERATE BUTTON */}
+        <div style={{ marginBottom: 18 }}>
+          <Link to="/invoices/generate" className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
             <Plus size={16} /> Generate Monthly Invoices
           </Link>
         </div>
 
         {error && <div className="banner-error">{error}</div>}
 
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span className="summary-label">Total Invoices</span>
-            <span className="summary-value">{summary.totalInvoices}</span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Collected</span>
-            <span className="summary-value summary-success">
-              {formatRupees(summary.collected)}
-            </span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Pending</span>
-            <span className="summary-value summary-danger">
-              {formatRupees(summary.pending)}
-            </span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Partial Payments</span>
-            <span className="summary-value">{summary.partialCount}</span>
-          </div>
+        {/* SUMMARY CARDS — explicit 2×2 inline grid, never overridden by CSS */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+          marginBottom: 18,
+        }}>
+          <SummaryCard
+            label="Total Invoices"
+            value={summary.totalInvoices}
+          />
+          <SummaryCard
+            label="Collected"
+            value={formatRupees(summary.collected)}
+            valueStyle={{ color: '#1a7a45' }}
+          />
+          <SummaryCard
+            label="Pending"
+            value={formatRupees(summary.pending)}
+            valueStyle={{ color: '#c0392b' }}
+          />
+          <SummaryCard
+            label="Partial Payments"
+            value={summary.partialCount}
+          />
         </div>
 
-        <div className="card">
-          {loading ? (
+        {loading ? (
+          <div className="card">
             <div className="loading-state">Loading invoices...</div>
-          ) : filtered.length === 0 ? (
+          </div>
+        ) : pageItems.length === 0 ? (
+          <div className="card">
             <div className="empty-state">
               No invoices found for {MONTH_NAMES[monthFilter - 1]} {yearFilter}.
               {' '}Generate monthly invoices to get started.
             </div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Invoice No</th>
-                  <th>Student</th>
-                  <th>Total Amount</th>
-                  <th>Paid Amount</th>
-                  <th>Pending Amount</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((inv) => {
-                  const pending = Number(inv.total_amount) - Number(inv.paid_amount)
-                  return (
-                    <tr key={inv.id}>
-                      <td>{inv.invoice_no}</td>
-                      <td>
-                        {inv.students?.full_name || '—'}
-                        {inv.students?.roll_no ? ` (${inv.students.roll_no})` : ''}
-                      </td>
-                      <td>{formatRupees(inv.total_amount)}</td>
-                      <td>{formatRupees(inv.paid_amount)}</td>
-                      <td>{formatRupees(pending)}</td>
-                      <td>
-                        <span className={badgeClass(inv.status)}>{inv.status}</span>
-                      </td>
-                      <td>
-                        <div className="action-icons">
-                          <button
-                            title="View Details"
-                            onClick={() => navigate(`/invoices/${inv.id}`)}
-                          >
-                            <Eye size={17} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="card-list">
+            {pageItems.map((inv) => {
+              const pending = Number(inv.total_amount) - Number(inv.paid_amount)
+              return (
+                <div
+                  key={inv.id}
+                  className={statusCardClass(inv.status)}
+                  onClick={() => navigate(`/invoices/${inv.id}`)}
+                >
+                  <div className="data-card-top">
+                    <div>
+                      <p className="data-card-title">{inv.invoice_no}</p>
+                      <p className="data-card-subtitle">{inv.students?.full_name || '—'}</p>
+                    </div>
+                    <span className="status-card-pill">{inv.status}</span>
+                  </div>
+
+                  <div className="data-card-summary">
+                    <div className="summary-item">
+                      <span className="summary-item-label">Total</span>
+                      <span className="summary-item-value">{formatRupees(inv.total_amount)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-item-label">Paid</span>
+                      <span className="summary-item-value success">{formatRupees(inv.paid_amount)}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-item-label">Pending</span>
+                      <span className="summary-item-value danger">{formatRupees(pending)}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {filtered.length > 0 && (
+              <div className="table-footer mobile-pagination">
+                <span>
+                  {(currentPage - 1) * PAGE_SIZE + 1}-
+                  {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                </span>
+                <div className="pagination">
+                  <button disabled={currentPage === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button disabled={currentPage === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   )

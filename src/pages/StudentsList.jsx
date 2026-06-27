@@ -6,10 +6,8 @@ import {
   Eye,
   Pencil,
   Trash2,
-  ChevronsLeft,
   ChevronLeft,
   ChevronRight,
-  ChevronsRight,
 } from 'lucide-react'
 import { supabase } from '../supabaseClient.js'
 import Topbar from '../components/Topbar.jsx'
@@ -52,19 +50,20 @@ export default function StudentsList() {
   useEffect(() => {
     fetchStudents()
   }, [])
-  useEffect(() => {
-  async function loadCourses() {
-    const { data, error } = await supabase
-      .from('courses')
-      .select('course_name')
-      .order('course_name', { ascending: true })
 
-    if (!error && data) {
-      setCourseOptions(data.map((c) => c.course_name))
+  useEffect(() => {
+    async function loadCourses() {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('course_name')
+        .order('course_name', { ascending: true })
+
+      if (!error && data) {
+        setCourseOptions(data.map((c) => c.course_name))
+      }
     }
-  }
-  loadCourses()
-}, [])
+    loadCourses()
+  }, [])
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
@@ -116,24 +115,6 @@ export default function StudentsList() {
     setDeleteTarget(null)
   }
 
-  // Build a simple page number list, e.g. 1 2 3 ... last
-  function pageNumbers() {
-    const nums = []
-    const last = totalPages
-    const cur = currentPage
-    const add = (n) => nums.push(n)
-
-    add(1)
-    if (cur > 3) nums.push('...')
-    for (let n = Math.max(2, cur - 1); n <= Math.min(last - 1, cur + 1); n++) {
-      add(n)
-    }
-    if (cur < last - 2) nums.push('...')
-    if (last > 1) add(last)
-
-    return [...new Set(nums)]
-  }
-
   return (
     <>
       <Topbar title="Students" />
@@ -168,7 +149,7 @@ export default function StudentsList() {
             onChange={(e) => resetToFirstPage(setCourseFilter)(e.target.value)}
           >
             <option>All Courses</option>
-          {courseOptions.map((c) => (
+            {courseOptions.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
@@ -197,124 +178,167 @@ export default function StudentsList() {
           </select>
         </div>
 
-        <div className="card">
-          {loading ? (
+        {loading ? (
+          <div className="card">
             <div className="loading-state">Loading students...</div>
-          ) : pageItems.length === 0 ? (
+          </div>
+        ) : pageItems.length === 0 ? (
+          <div className="card">
             <div className="empty-state">No students found.</div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Roll No</th>
-                  <th>Name</th>
-                  <th>Course</th>
-                  <th>Category</th>
-                  <th>Phone</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageItems.map((s) => (
-                  <tr key={s.id}>
-                    <td>{s.roll_no}</td>
-                    <td>{s.full_name}</td>
-                    <td>{s.course}</td>
-                    <td>{s.category}</td>
-                    <td>{s.phone}</td>
-                    <td>
-                      <span
-                        className={
-                          'badge ' +
-                          (s.status === 'Active'
-                            ? 'badge-active'
-                            : 'badge-inactive')
-                        }
-                      >
-                        {s.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-icons">
-                        <button
-                          title="View"
-                          onClick={() => setViewStudent(s)}
-                        >
-                          <Eye size={17} />
-                        </button>
-                        <button
-                          title="Edit"
-                          onClick={() => navigate(`/students/edit/${s.id}`)}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          title="Delete"
-                          className="icon-delete"
-                          onClick={() => setDeleteTarget(s)}
-                        >
-                          <Trash2 size={17} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          </div>
+        ) : (
+          <div className="card-list">
+            {pageItems.map((s) => (
+              <div key={s.id} className="data-card">
+                <div className="data-card-top">
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p className="data-card-title">{s.full_name}</p>
+                    <p className="data-card-subtitle">{s.roll_no}</p>
+                  </div>
+                  <span
+                    className={
+                      'badge ' +
+                      (s.status === 'Active' ? 'badge-active' : 'badge-inactive')
+                    }
+                    style={{ whiteSpace: 'nowrap', marginLeft: 8 }}
+                  >
+                    {s.status}
+                  </span>
+                </div>
 
-          {!loading && filtered.length > 0 && (
-            <div className="table-footer">
-              <span>
-                Showing {(currentPage - 1) * PAGE_SIZE + 1} to{' '}
-                {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{' '}
-                {filtered.length} entries
-              </span>
-              <div className="pagination">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setPage(1)}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '10px',
+                    padding: '10px 0',
+                    borderTop: '1px solid #f0f1f5',
+                    borderBottom: '1px solid #f0f1f5',
+                    margin: '8px 0',
+                    fontSize: '12px',
+                  }}
                 >
-                  <ChevronsLeft size={14} />
-                </button>
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  <div>
+                    <div style={{ color: '#6b7184', fontSize: '10px', textTransform: 'uppercase', marginBottom: 3 }}>
+                      Course
+                    </div>
+                    <div style={{ color: '#1f2330', fontWeight: 500, wordBreak: 'break-word' }}>
+                      {s.course || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#6b7184', fontSize: '10px', textTransform: 'uppercase', marginBottom: 3 }}>
+                      Category
+                    </div>
+                    <div style={{ color: '#1f2330', fontWeight: 500, wordBreak: 'break-word' }}>
+                      {s.category || '-'}
+                    </div>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ color: '#6b7184', fontSize: '10px', textTransform: 'uppercase', marginBottom: 3 }}>
+                      Phone
+                    </div>
+                    <div style={{ color: '#1f2330', fontWeight: 500 }}>
+                      {s.phone || '-'}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '6px',
+                    marginTop: '10px',
+                    paddingTop: '10px',
+                    borderTop: '1px solid #f0f1f5',
+                  }}
                 >
-                  <ChevronLeft size={14} />
-                </button>
-                {pageNumbers().map((n, idx) =>
-                  n === '...' ? (
-                    <span key={`dots-${idx}`} style={{ padding: '0 4px' }}>
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={n}
-                      className={n === currentPage ? 'active' : ''}
-                      onClick={() => setPage(n)}
-                    >
-                      {n}
-                    </button>
-                  )
-                )}
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  <ChevronRight size={14} />
-                </button>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setPage(totalPages)}
-                >
-                  <ChevronsRight size={14} />
-                </button>
+                  <button
+                    onClick={() => setViewStudent(s)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                      fontSize: '11px',
+                      padding: '6px',
+                      borderRadius: 6,
+                      border: '1px solid #d9dce5',
+                      background: '#fff',
+                      color: '#4f46e5',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Eye size={13} /> View
+                  </button>
+                  <button
+                    onClick={() => navigate(`/students/edit/${s.id}`)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                      fontSize: '11px',
+                      padding: '6px',
+                      borderRadius: 6,
+                      border: '1px solid #d9dce5',
+                      background: '#fff',
+                      color: '#4f46e5',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Pencil size={13} /> Edit
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(s)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                      fontSize: '11px',
+                      padding: '6px',
+                      borderRadius: 6,
+                      border: '1px solid #fdecec',
+                      background: '#fff',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            ))}
+
+            {filtered.length > 0 && (
+              <div className="table-footer mobile-pagination">
+                <span>
+                  {(currentPage - 1) * PAGE_SIZE + 1}-
+                  {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{' '}
+                  {filtered.length}
+                </span>
+                <div className="pagination">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {viewStudent && (
@@ -354,10 +378,7 @@ export default function StudentsList() {
               <span>{viewStudent.address || '-'}</span>
             </div>
             <div className="modal-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setViewStudent(null)}
-              >
+              <button className="btn btn-secondary" onClick={() => setViewStudent(null)}>
                 Close
               </button>
             </div>
@@ -374,10 +395,7 @@ export default function StudentsList() {
               <strong>{deleteTarget.full_name}</strong> ({deleteTarget.roll_no}
               ). This action cannot be undone.
             </p>
-            <div
-              className="modal-actions"
-              style={{ justifyContent: 'flex-end', gap: 12 }}
-            >
+            <div className="modal-actions" style={{ justifyContent: 'flex-end', gap: 12 }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => setDeleteTarget(null)}

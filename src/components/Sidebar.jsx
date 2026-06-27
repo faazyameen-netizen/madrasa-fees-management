@@ -11,7 +11,12 @@ import {
   Settings,
   Moon,
   X,
+  LogOut,
 } from 'lucide-react'
+import { useAuth } from '../AuthContext.jsx'
+
+// Set to true to temporarily show these unfinished menu items again.
+const SHOW_DISABLED_ITEMS = false
 
 const disabledItems = [
   { label: 'Dashboard', icon: Home },
@@ -20,6 +25,8 @@ const disabledItems = [
 ]
 
 export default function Sidebar({ mobileOpen, onClose }) {
+  const { logout } = useAuth()
+
   return (
     <aside className={'sidebar' + (mobileOpen ? ' sidebar-open' : '')}>
       <div className="sidebar-brand">
@@ -40,7 +47,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
         </button>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <NavLink
           to="/"
           onClick={onClose}
@@ -107,17 +114,28 @@ export default function Sidebar({ mobileOpen, onClose }) {
           Payments
         </NavLink>
 
-        {disabledItems.map(({ label, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            className="sidebar-item disabled"
-            title="Not part of this build yet"
-          >
-            <Icon size={18} />
-            {label}
-          </button>
-        ))}
+        {SHOW_DISABLED_ITEMS &&
+          disabledItems.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              type="button"
+              className="sidebar-item disabled"
+              title="Not part of this build yet"
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
+
+        <button
+          type="button"
+          className="sidebar-item"
+          onClick={logout}
+          style={{ marginTop: 'auto' }}
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </nav>
     </aside>
   )
