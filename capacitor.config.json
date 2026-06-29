@@ -1,0 +1,5 @@
+{
+  "appId": "com.payment.app",
+  "appName": "Fee Manager",
+  "webDir": "dist"
+}
